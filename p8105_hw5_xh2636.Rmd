@@ -11,6 +11,7 @@ library(ggplot2)
 library(dplyr)
 ```
 
+# Problem 1
 ```{r}
 # Load the raw data
 path <- "https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv"
@@ -85,6 +86,22 @@ print(result_df)
 ```
 
 ```{r}
+# Arrange the city in estimate order and clean the dataframe
+result_df <- result_df %>%
+  filter(estimate != 0) %>%
+  arrange(desc(estimate))
 
+# Draw the graph
+result_df %>%
+  ggplot(aes(x = fct_reorder(city_state, -estimate), y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  coord_flip() +
+  labs(title = "Proportion of Unsolved Homicides in Different Cities",
+       x = "City",
+       y = "Proportion of Unsolved Homicides") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+# Problem 2
