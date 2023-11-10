@@ -41,12 +41,14 @@ city_summary <- homicide_data %>%
 ```
 
 ```{r}
+# use the prop.test function to estimate the proportion of homicides that are unsolved
 Baltimore_MD <- homicide_data %>%
   filter(city_state == "Baltimore, MD") %>%
   summarise(total_homicides = n(),
             unsolved_homicides = sum(disposition %in% c("Closed without arrest", 
                                                 "Open/No arrest")))
 
+# apply the broom::tidy and pull the estimated proportion and confidence intervals
 baltimore_test <- prop.test(x = pull(Baltimore_MD, unsolved_homicides)
                            , n = pull(Baltimore_MD, total_homicides)) %>%
   broom::tidy() %>%
@@ -54,4 +56,3 @@ baltimore_test <- prop.test(x = pull(Baltimore_MD, unsolved_homicides)
 
 baltimore_test %>% knitr::kable()
 ```
-
