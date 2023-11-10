@@ -30,7 +30,7 @@ The raw data is about `r obs` criminal homicides over the past decade in 50 of t
 homicide_data <- homicide_data %>%
   mutate(city_state = paste(city, state, sep = ", "))
 
-# summarize within cities, the total number of homicides and the number of unsolved homicides
+# Summarize within cities, the total number of homicides and the number of unsolved homicides
 city_summary <- homicide_data %>%
   group_by(city_state) %>%
   summarise(
@@ -41,14 +41,14 @@ city_summary <- homicide_data %>%
 ```
 
 ```{r}
-# use the prop.test function to estimate the proportion of homicides that are unsolved
+# Use the prop.test function to estimate the proportion of homicides that are unsolved
 Baltimore_MD <- homicide_data %>%
   filter(city_state == "Baltimore, MD") %>%
   summarise(total_homicides = n(),
             unsolved_homicides = sum(disposition %in% c("Closed without arrest", 
                                                 "Open/No arrest")))
 
-# apply the broom::tidy and pull the estimated proportion and confidence intervals
+# Apply the broom::tidy and pull the estimated proportion and confidence intervals
 baltimore_test <- prop.test(x = pull(Baltimore_MD, unsolved_homicides)
                            , n = pull(Baltimore_MD, total_homicides)) %>%
   broom::tidy() %>%
@@ -56,3 +56,35 @@ baltimore_test <- prop.test(x = pull(Baltimore_MD, unsolved_homicides)
 
 baltimore_test %>% knitr::kable()
 ```
+
+```{r, warning=FALSE}
+# Adding a function
+prop_test_city <- function(city_all) {
+  city_statesss <- city_all %>%
+    summarise(total_homicides = n(), 
+              unsolved_homicides = sum(disposition %in% c("Closed without arrest", 
+                                                          "Open/No arrest")))
+
+  city_test <- prop.test(x = pull(city_statesss, unsolved_homicides) , 
+                       n = pull(city_statesss, total_homicides)) %>%
+  broom::tidy() %>%
+  select(estimate, conf.low, conf.high)
+  
+  city_test
+}
+
+# Apply function to nested dataset and un-nest results
+result_df <- homicide_data %>%
+  group_by(city_state) %>%
+  nest() %>%
+  mutate(result = map(data, prop_test_city)) %>%
+  select(city_state, result) %>%
+  unnest(cols = result)
+
+print(result_df)
+```
+
+```{r}
+
+```
+
