@@ -1,0 +1,57 @@
+---
+title: "p8105_hw5_xh2636"
+author: "Xiaoyu Huang"
+date: "2023-11-10"
+output: github_document
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+# Load the raw data
+path <- "https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv"
+
+homicide_data <- read.csv(path)
+```
+
+```{r, echo=FALSE}
+obs <- nrow(homicide_data)
+colum <- ncol(homicide_data)
+```
+
+The raw data is about `r obs` criminal homicides over the past decade in 50 of the largest American cities with `r colum` columns. The data included the location of the killing, whether an arrest was made and, in most cases, basic demographic information about each victim. 
+
+```{r}
+# Adding the city state variable
+homicide_data <- homicide_data %>%
+  mutate(city_state = paste(city, state, sep = ", "))
+
+# summarize within cities, the total number of homicides and the number of unsolved homicides
+city_summary <- homicide_data %>%
+  group_by(city_state) %>%
+  summarise(
+    total_homicides = n(),
+    unsolved_homicides = sum(disposition %in% c("Closed without arrest", 
+                                                "Open/No arrest"))
+  )
+```
+
+```{r}
+Baltimore_MD <- homicide_data %>%
+  filter(city_state == "Baltimore, MD") %>%
+  summarise(total_homicides = n(),
+            unsolved_homicides = sum(disposition %in% c("Closed without arrest", 
+                                                "Open/No arrest")))
+
+baltimore_test <- prop.test(x = pull(Baltimore_MD, unsolved_homicides)
+                           , n = pull(Baltimore_MD, total_homicides)) %>%
+  broom::tidy() %>%
+  select(estimate, conf.low, conf.high)
+
+baltimore_test %>% knitr::kable()
+```
+
