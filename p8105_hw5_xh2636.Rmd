@@ -9,6 +9,8 @@ output: github_document
 library(tidyverse)
 library(ggplot2)
 library(dplyr)
+library(rvest)
+library(broom)
 ```
 
 # Problem 1
@@ -140,3 +142,74 @@ print(spaghetti_plot)
 As the graph, we can clearly see the different between control and experimental arm. The mean value for control group is lower than experimental, also same for the range of the value. Control arm have more negative value compare to experimental. Lastly, the fluctuation of the experimental curve is significantly greater than that of the control.
 
 # Problem 3
+```{r}
+# Set seed for reproducibility
+set.seed(123)
+
+# Define parameters
+n <- 30
+sigma <- 5
+true_mu <- c(0, 1, 2, 3, 4, 5, 6)
+num_datasets <- 5000
+alpha <- 0.05
+
+# Create an empty dataframe to store results
+results_df <- data.frame(mu_hat = numeric(),
+                         p_value = numeric(),
+                         true_mu = numeric(),
+                         reject = logical(),
+                         stringsAsFactors = FALSE)
+
+# Generate datasets and perform t-tests
+for (mu in true_mu) {
+  for (i in 1:num_datasets) {
+    dataset <- rnorm(n, mean = mu, sd = sigma)
+    t_test_result <- tidy(t.test(dataset, mu = 0))
+    mu_hat <- t_test_result$estimate
+    p_value <- t_test_result$p.value
+    reject <- p_value < alpha
+    results_df <- rbind(results_df, c(mu_hat, p_value, mu, reject))
+  }
+}
+
+# Rename columns
+colnames(results_df) <- c("mu_hat", "p_value", "true_mu", "reject")
+results_df$reject <- ifelse(results_df$reject, "TRUE", "FALSE")
+
+print(head(results_df, 20))
+```
+
+```{r, warning=FALSE}
+# Create an empty dataframe to store additional results
+additional_results_df <- data.frame(true_mu = numeric(),
+                                    power = numeric(),
+                                    average_mu_hat = numeric(),
+                                    stringsAsFactors = FALSE)
+
+# Calculate power and average_mu_hat
+for (mu in true_mu) {
+  # Subset the results dataframe for the current true_mu
+  subset_df <- subset(results_df, true_mu == mu)
+  power <- mean(subset_df$reject == TRUE)
+  average_mu_hat <- mean(subset_df$mu_hat)
+  additional_results_df <- rbind(additional_results_df, c(mu, power, average_mu_hat))
+}
+
+# Rename columns
+colnames(additional_results_df) <- c("true_mu", "power", "average_mu_hat")
+print(additional_results_df)
+```
+
+```{r, warning=FALSE}
+# showing relation between power and true value of μ
+ggplot(additional_results_df, aes(x = true_mu, y = power)) +
+  geom_line(color = "blue", size = 1) +
+  geom_point(color = "blue", size = 3) +
+  labs(title = "Association between True Value of Mean and Power",
+       x = "True Value of μ",
+       y = "Power") +
+  theme_minimal()
+```
+
+From the graph we can see that the larger the true mean, the greater the power, and they are directly proportional. It shows that as the effect size increases, the proportion of times the null was rejected (the power of the test) also increases.
+
