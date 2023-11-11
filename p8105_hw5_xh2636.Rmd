@@ -213,3 +213,35 @@ ggplot(additional_results_df, aes(x = true_mu, y = power)) +
 
 From the graph we can see that the larger the true mean, the greater the power, and they are directly proportional. It shows that as the effect size increases, the proportion of times the null was rejected (the power of the test) also increases.
 
+```{r}
+results_df$reject <- as.logical(results_df$reject)
+
+# Calculate average estimate of μ̂ for all samples
+average_mu_hat_all <- results_df %>%
+  group_by(true_mu) %>%
+  summarize(average_mu_hat = mean(mu_hat))
+
+# Calculate average estimate of μ for samples where the null was rejected
+average_mu_hat_rejected <- results_df %>%
+  filter(reject) %>%
+  group_by(true_mu) %>%
+  summarize(average_mu_hat_rejected = mean(mu_hat))
+
+# Merge the two data frames
+merged_df <- merge(average_mu_hat_all, average_mu_hat_rejected, by = "true_mu", all.x = TRUE)
+
+# Rename columns
+colnames(merged_df) <- c("true_mu", "average_mu_hat_all", "average_mu_hat_rejected")
+
+ggplot(merged_df, aes(x = true_mu)) +
+  geom_line(aes(y = average_mu_hat_all), color = "blue", size = 1, linetype = "solid", alpha = 0.7) +
+  geom_point(aes(y = average_mu_hat_all), color = "blue", size = 3) +
+  geom_line(aes(y = average_mu_hat_rejected), color = "red", size = 1, linetype = "dashed", alpha = 0.7) +
+  geom_point(aes(y = average_mu_hat_rejected), color = "red", size = 3) +
+  labs(title = "Average Estimate of μ̂ for All Samples and Rejected Samples",
+       x = "True Value of μ",
+       y = "Average Estimate of μ̂") +
+  theme_minimal()
+```
+
+As the graph shows, the red dot line is close to the blue solid line. This indicates that, on average, the tests are providing accurate estimates when the null hypothesis is rejected.
