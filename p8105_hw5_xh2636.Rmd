@@ -176,7 +176,7 @@ for (mu in true_mu) {
 colnames(results_df) <- c("mu_hat", "p_value", "true_mu", "reject")
 results_df$reject <- ifelse(results_df$reject, "TRUE", "FALSE")
 
-print(head(results_df, 20))
+print(results_df)
 ```
 
 ```{r, warning=FALSE}
