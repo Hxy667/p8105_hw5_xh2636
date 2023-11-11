@@ -244,4 +244,4 @@ ggplot(merged_df, aes(x = true_mu)) +
   theme_minimal()
 ```
 
-As the graph shows, the red dot line is close to the blue solid line. This indicates that, on average, the tests are providing accurate estimates when the null hypothesis is rejected.
+As the graph shows, the red dot line is close to the blue solid line. This indicates that, on average, the tests are providing accurate estimates when the null hypothesis is rejected due to low biased and low inaccuracy.
