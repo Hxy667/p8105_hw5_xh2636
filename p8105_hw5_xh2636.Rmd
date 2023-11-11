@@ -124,3 +124,19 @@ all_data_csv <- map_df(data_files, ~{
 view(all_data_csv)
 ```
 
+```{r}
+# Make a spaghetti plot showing observations on each subject over time
+spaghetti_plot <- ggplot(all_data_csv, aes(x = week, y = value, group = subject_id)) +
+  geom_line() +
+  facet_grid(~arm) +
+  labs(title = "Value of Observations Over Time",
+       x = "Week",
+       y = "Value") +
+  theme(legend.position = "top")
+
+print(spaghetti_plot)
+```
+
+As the graph, we can clearly see the different between control and experimental arm. The mean value for control group is lower than experimental, also same for the range of the value. Control arm have more negative value compare to experimental. Lastly, the fluctuation of the experimental curve is significantly greater than that of the control.
+
+# Problem 3
